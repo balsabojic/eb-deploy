@@ -82,14 +82,18 @@ describe('EBDeploy', () => {
     };
 
     const assumeRoleResponse = {
-      Credentials: 'TestCredentials'
+      Credentials: {
+        AccessKeyId: 'testAccessKeyNew',
+        SecretAccessKey: 'testSecretAccessKeyNew',
+        SessionToken: 'testSessionTokenNew'
+      }
     };
 
     beforeEach(() => {
       ebDeploy = new EBDeploy(Object.assign({}, options));
       sandbox.stub(console, 'info');
+      sandbox.stub(AWS.config, 'update');
       sandbox.stub(ebDeploy.sts, 'assumeRole').returns({ promise: () => Promise.resolve(assumeRoleResponse) });
-      sandbox.stub(ebDeploy.sts, 'credentialsFrom').returns({ promise: () => Promise.resolve() });
     });
 
     it('calls sts.assumeRole with RoleArn and RoleSessionName', async () => {
@@ -100,9 +104,14 @@ describe('EBDeploy', () => {
       });
     });
 
-    it('calls sts.credentialsFrom with response from sts.assumeRole', async () => {
+    it('calls AWS.config.update with response from sts.assumeRole', async () => {
+      const credentials = {
+        accessKeyId: 'testAccessKeyNew',
+        secretAccessKey: 'testSecretAccessKeyNew',
+        sessionToken: 'testSessionTokenNew'
+      };
       await ebDeploy.assumeRole();
-      expect(ebDeploy.sts.credentialsFrom).to.have.been.calledWith(assumeRoleResponse);
+      expect(AWS.config.update).to.have.been.calledWithExactly(credentials);
     });
   });
 

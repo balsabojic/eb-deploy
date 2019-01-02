@@ -34,7 +34,12 @@ class EBDeploy {
       RoleSessionName: 'EB-Deploy'
     }).promise();
 
-    AWS.config.credentials = this.sts.credentialsFrom(roleResponse);
+    AWS.config.update({
+      accessKeyId: roleResponse.Credentials.AccessKeyId,
+      secretAccessKey: roleResponse.Credentials.SecretAccessKey,
+      sessionToken: roleResponse.Credentials.SessionToken
+    });
+
     console.info(`Assumed role ${this.options.assumeRole}`);
     this.s3 = new AWS.S3();
     this.eb = new AWS.ElasticBeanstalk();
